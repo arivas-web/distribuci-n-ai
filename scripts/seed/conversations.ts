@@ -122,10 +122,12 @@ export function routineCall(rng: Rng, client: Client, order: Order, start: strin
   const day = deliveryDay(order.date);
   say(b, "agente", `Buenos días, ¿${name}? Le llamo de ${company} para el pedido del ${day}.`, 0);
   say(b, "cliente", rng.pick(["Sí, dime.", "Hola, sí, dime, que estoy con la cafetera.", "Ah, sí. Venga."]), 0);
-  say(b, "agente", `La última vez fueron ${lines.length} productos: ${lines.slice(0, 3).map(lineText).join(", ")}${lines.length > 3 ? "…" : ""}. ¿Lo repetimos igual?`, 0);
+  const names = lines.slice(0, 3).map((l) => l.name.split(" · ")[0].toLowerCase());
+  const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} y ${names.at(-1)}` : names[0];
+  say(b, "agente", `La última vez fueron ${lines.length} productos, entre ellos ${list}. ¿Lo repetimos igual?`, 0);
   say(b, "cliente", rng.pick([
     "Sí, igual. Bueno, espera… sí, igual.",
-    "Igual, igual. Lo que pasa es que el miércoles no estoy, que lo dejen en el almacén.",
+    "Igual, igual. Lo que pasa es que mañana no estoy, que lo dejen en el almacén.",
     "Sí, todo igual, ho.",
   ]), 1);
   say(b, "agente", `Perfecto. Queda registrado por ${formatEuro(order.total)} y le llega el ${day} por la mañana. Le mando el resumen por mensaje.`, 0);

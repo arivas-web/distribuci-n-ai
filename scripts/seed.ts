@@ -211,6 +211,8 @@ const mainFamily = (c: Client, exclude: string[] = []) => {
 };
 const contactDelay = (type: RiskType, cadence: number) =>
   ({ retraso: Math.ceil(cadence * 1.6), caida_volumen: 28, familia_abandonada: 14, nuevo_sin_repetir: cadence * 2 })[type];
+/** El agente no escribe en domingo. */
+const workday = (d: number) => (dow(d) === 6 ? d + 1 : d);
 
 // Bar O Peirao: dejó el barril el 08/09 y no pide desde el 15/09.
 episodes.push({ clientId: "c-peirao", type: "familia_abandonada", start: idx("2026-09-03"), group: "contacted", outcome: "open", current: true, familyId: "barril", silent: true });
@@ -244,7 +246,7 @@ currentPlan.forEach((type, i) => {
     c.since = iso(start);
   }
   ep.start = start;
-  if (group === "contacted") ep.contactDay = Math.min(TODAY_I, start + contactDelay(type, c.cadenceDays));
+  if (group === "contacted") ep.contactDay = Math.min(TODAY_I, workday(start + contactDelay(type, c.cadenceDays)));
   episodes.push(ep);
 });
 
@@ -260,7 +262,7 @@ for (let i = 0; i < 82; i++) {
   if (type === "caida_volumen") ep.lowMult = rng.float(0.4, 0.6);
   if (type === "familia_abandonada") ep.familyId = mainFamily(c);
   if (type === "nuevo_sin_repetir") c.since = iso(start);
-  if (group === "contacted") ep.contactDay = start + contactDelay(type, c.cadenceDays);
+  if (group === "contacted") ep.contactDay = workday(start + contactDelay(type, c.cadenceDays));
   if (recovered) {
     ep.recoveryDay =
       group === "contacted"
@@ -498,7 +500,9 @@ for (const c of clients) {
       summary = `Hizo su primer pedido el ${formatDate(c.since)} y no ha vuelto a pedir.`;
       atStake = Math.round(c.avgTicket * (30 / c.cadenceDays));
     }
-    c.risk = { type: current.type, since: iso(current.start), summary, familyId, monthlyAtStake: atStake };
+    // En O Peirao el patrón se rompe cuando deja el barril, antes de dejar de pedir.
+    const since = c.id === "c-peirao" ? "2026-09-03" : iso(current.start);
+    c.risk = { type: current.type, since, summary, familyId, monthlyAtStake: atStake };
   } else {
     const last = eps.filter((e) => !e.current).at(-1);
     if (last?.outcome === "lost") c.status = "perdido";

@@ -36,12 +36,13 @@ export function HomeView() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="flex items-center gap-2 text-[13px] text-ink-subtle">
-        <span>{formatLongDate(now).replace(/^./, (ch) => ch.toUpperCase())}</span>
+        <span className="truncate">{formatLongDate(now).replace(/^./, (ch) => ch.toUpperCase())}</span>
         <span>·</span>
         <span className="tabular">{formatTime(now)}</span>
-        <span className="ml-1 inline-flex items-center gap-1.5 text-accent">
+        <span className="ml-auto inline-flex items-center gap-1.5 text-accent sm:ml-1">
           <span className={`size-1.5 rounded-full bg-accent ${liveMode ? "animate-pulse" : ""}`} />
-          El agente está trabajando
+          <span className="hidden sm:inline">El agente está trabajando</span>
+          <span className="sm:hidden">Trabajando</span>
         </span>
       </div>
 
@@ -67,7 +68,7 @@ export function HomeView() {
       <section className="mt-8">
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="text-[15px] font-medium text-ink">Necesita tu ayuda</h2>
-          {pendingCount > 0 && <span className="text-[13px] text-ink-subtle">Elige una opción y el agente sigue solo</span>}
+          {pendingCount > 0 && <span className="hidden text-[13px] text-ink-subtle sm:inline">Elige una opción y el agente sigue solo</span>}
         </div>
 
         <div className="space-y-3">
