@@ -148,14 +148,14 @@ export function ClientDetailView(props: {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-        <Card className="p-4 sm:p-5">
+        <Card className="min-w-0 p-4 sm:p-5">
           <SectionTitle className="mb-3">Familias que compra</SectionTitle>
           <ul className="divide-y divide-line">
             {families.map((f) => (
               <li key={f.id} className="flex items-center gap-3 py-2.5">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-sm text-ink">{f.name}</span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-sm text-ink">{f.name}</span>
                     {f.status === "dejado" && <Badge tone="amber">Ha dejado de comprar</Badge>}
                     {f.status === "baja" && <Badge tone="neutral">Compra menos</Badge>}
                     {f.status === "nueva" && <Badge tone="accent">Nueva</Badge>}
@@ -175,7 +175,7 @@ export function ClientDetailView(props: {
           </ul>
         </Card>
 
-        <Card className="p-4 sm:p-5">
+        <Card className="min-w-0 p-4 sm:p-5">
           <SectionTitle className="mb-3">Lo que ha hecho el agente</SectionTitle>
           {allConversations.length === 0 && props.recentOrders.length === 0 && <p className="text-sm text-ink-muted">Aún no hay actividad con este cliente.</p>}
           <ul className="space-y-1">

@@ -38,12 +38,7 @@ export function MonthlyResultsChart({ data, cost }: { data: MonthRow[]; cost: nu
           />
           <Bar dataKey="sales" fill="var(--color-accent-line)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
           <Bar dataKey="margin" fill="var(--color-accent)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
-          <ReferenceLine
-            y={cost}
-            stroke="var(--color-ink-subtle)"
-            strokeDasharray="4 4"
-            label={{ value: "Coste del servicio", position: "insideTopRight", fill: "var(--color-ink-muted)", fontSize: 11 }}
-          />
+          <ReferenceLine y={cost} stroke="var(--color-ink-subtle)" strokeDasharray="4 4" />
         </BarChart>
       </ResponsiveContainer>
     </div>

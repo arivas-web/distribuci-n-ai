@@ -18,7 +18,6 @@ import type {
   Order,
   OrderChannel,
   OrderLine,
-  Product,
   RiskType,
   TodaySummary,
 } from "../src/types";
@@ -793,7 +792,7 @@ const write = (name: string, data: unknown) => writeFileSync(path.join(out, name
 
 // En el historial solo guardamos las líneas de los pedidos recientes.
 const compactOrders = orders.map((o) => {
-  const { lines, ...rest } = o;
+  const { lines: _lines, ...rest } = o; // eslint-disable-line @typescript-eslint/no-unused-vars
   return idx(o.date) >= WINDOW_DETAIL && o.channel === "agente" ? o : rest;
 });
 

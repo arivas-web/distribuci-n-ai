@@ -59,18 +59,18 @@ export function ResultsView({ results, agentStart }: { results: Results; agentSt
           <dl className="grid grid-cols-1 gap-3 text-sm">
             <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
               <dt className="text-ink-muted">Margen recuperado este mes</dt>
-              <dd className="tabular font-medium text-ink">{formatEuroShort(current.margin)}</dd>
+              <dd className="tabular font-medium whitespace-nowrap text-ink">{formatEuroShort(current.margin)}</dd>
             </div>
             <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
               <dt className="text-ink-muted">
                 Descontando lo que habría vuelto solo
                 <span className="block text-xs text-ink-subtle">según el grupo de control</span>
               </dt>
-              <dd className="tabular font-medium text-ink">{formatEuroShort(incremental)}</dd>
+              <dd className="tabular font-medium whitespace-nowrap text-ink">{formatEuroShort(incremental)}</dd>
             </div>
             <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
               <dt className="text-ink-muted">Coste del servicio</dt>
-              <dd className="tabular font-medium text-ink">{formatEuroShort(cost)}</dd>
+              <dd className="tabular font-medium whitespace-nowrap text-ink">{formatEuroShort(cost)}</dd>
             </div>
             <div className="flex items-baseline justify-between gap-4">
               <dt className="font-medium text-ink">Beneficio neto del mes</dt>
@@ -108,12 +108,15 @@ export function ResultsView({ results, agentStart }: { results: Results; agentSt
         <Card className="p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <SectionTitle>Ventas y margen recuperados por mes</SectionTitle>
-            <div className="flex gap-4 text-xs text-ink-muted">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
               <span className="inline-flex items-center gap-1.5">
                 <span className="size-2.5 rounded-sm bg-accent-line" /> Ventas
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="size-2.5 rounded-sm bg-accent" /> Margen
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 border-t border-dashed border-ink-subtle" /> Coste del servicio
               </span>
             </div>
           </div>

@@ -41,6 +41,15 @@ export function ConversationsView({ conversations }: { conversations: Conversati
     if (selected) detailRef.current?.scrollTo({ top: 0 });
   }, [selected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Cuando el agente escribe durante la demo, bajamos hasta el último mensaje.
+  const appendedCount = useDemo((s) => (selectedId ? s.appended[selectedId]?.length ?? 0 : 0));
+  useEffect(() => {
+    if (!appendedCount) return;
+    const el = detailRef.current;
+    if (el && el.scrollHeight > el.clientHeight) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    else document.querySelector("[data-conv-end]")?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [appendedCount]);
+
   const count = (o: OutcomeFilter) => all.filter((c) => (channel === "todas" || c.channel === channel) && (o === "todos" || c.outcome === o)).length;
   const client = selected ? clientById.get(selected.clientId) : undefined;
   const pendingCase = selected?.caseId && !resolved[selected.caseId] ? cases.find((k) => k.id === selected.caseId) : undefined;
@@ -131,7 +140,7 @@ export function ConversationsView({ conversations }: { conversations: Conversati
                   </div>
                 </div>
               </div>
-              <div className="space-y-4 p-4 sm:p-5">
+              <div className="space-y-4 p-4 pb-40 sm:p-5 sm:pb-40">
                 {pendingCase && (
                   <div className="flex flex-col gap-3 rounded-[10px] border border-amber-line bg-amber-soft p-3.5 text-sm sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-amber">{pendingCase.blocked}</span>
@@ -141,6 +150,7 @@ export function ConversationsView({ conversations }: { conversations: Conversati
                   </div>
                 )}
                 <ConversationView conversation={conversations.find((c) => c.id === selected.id) ?? selected} clientName={client.contactName} compact={selected.channel === "llamada"} />
+                <div data-conv-end />
               </div>
             </div>
           ) : (

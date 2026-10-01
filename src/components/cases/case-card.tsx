@@ -17,16 +17,14 @@ export function CaseCard({ c, index = 0 }: { c: StuckCase; index?: number }) {
   const info = caseClients[c.clientId];
   const resolution = useDemo((s) => s.resolved[c.id]);
   const openCase = useDemo((s) => s.openCase);
-  const [phase, setPhase] = useState<"open" | "done" | "collapsed">(resolution ? "collapsed" : "open");
-
+  // Al resolver, la tarjeta muestra la confirmación un momento y luego se pliega.
+  const [collapsedAt, setCollapsedAt] = useState(resolution?.at);
   useEffect(() => {
-    if (resolution && phase === "open") {
-      setPhase("done");
-      const t = setTimeout(() => setPhase("collapsed"), 1600);
-      return () => clearTimeout(t);
-    }
-    if (!resolution && phase !== "open") setPhase("open");
-  }, [resolution, phase]);
+    if (!resolution) return;
+    const t = setTimeout(() => setCollapsedAt(resolution.at), 1600);
+    return () => clearTimeout(t);
+  }, [resolution]);
+  const phase = !resolution ? "open" : collapsedAt === resolution.at ? "collapsed" : "done";
 
   return (
     <div className="collapse-out" data-collapsed={phase === "collapsed"} aria-hidden={phase === "collapsed"}>
