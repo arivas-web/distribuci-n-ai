@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowUpRight, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ChannelIcon, channelLabel } from "./channel";
 import { PageHeader } from "@/components/ui/card";
 import { Segmented } from "@/components/ui/segmented";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import type { Conversation, ConversationOutcome } from "@/types";
 import { ConversationView } from "./conversation-view";
 import { OutcomeBadge } from "./outcome-badge";
 
-type ChannelFilter = "todas" | "whatsapp" | "llamada";
+type ChannelFilter = "todas" | "whatsapp" | "llamada" | "email";
 type OutcomeFilter = "todos" | ConversationOutcome;
 
 export function ConversationsView({ conversations }: { conversations: Conversation[] }) {
@@ -57,7 +58,7 @@ export function ConversationsView({ conversations }: { conversations: Conversati
   return (
     <>
       <div className={cn(selected && "hidden lg:block")}>
-        <PageHeader title="Conversaciones" description="Lo que el agente ha hablado con tus clientes esta semana, por WhatsApp y por teléfono." />
+        <PageHeader title="Conversaciones" description="Lo que el agente ha hablado con tus clientes esta semana, por WhatsApp, teléfono y correo." />
         <div className="mb-4 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
           <Segmented
             value={channel}
@@ -66,6 +67,7 @@ export function ConversationsView({ conversations }: { conversations: Conversati
               { value: "todas", label: "Todas" },
               { value: "whatsapp", label: "WhatsApp" },
               { value: "llamada", label: "Llamadas" },
+              { value: "email", label: "Correo" },
             ]}
           />
           <div className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
@@ -98,7 +100,7 @@ export function ConversationsView({ conversations }: { conversations: Conversati
                   className={cn("flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-sunken/50", c.id === selectedId && "bg-accent-soft/50 hover:bg-accent-soft/60")}
                 >
                   <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-sunken text-ink-muted">
-                    {c.channel === "llamada" ? <Phone className="size-3.5" /> : <MessageCircle className="size-3.5" />}
+                    <ChannelIcon channel={c.channel} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
@@ -130,7 +132,7 @@ export function ConversationsView({ conversations }: { conversations: Conversati
                       {client.name} <ArrowUpRight className="size-3.5 text-ink-subtle" />
                     </Link>
                     <div className="text-[13px] text-ink-muted">
-                      {client.contactName} · {selected.channel === "llamada" ? "Llamada" : "WhatsApp"}
+                      {client.contactName} · {channelLabel[selected.channel]}
                       {selected.durationSec ? ` · ${formatDuration(selected.durationSec)}` : ""}
                     </div>
                   </div>

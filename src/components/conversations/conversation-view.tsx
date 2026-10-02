@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, Phone } from "lucide-react";
+import { Mail, Mic, Phone } from "lucide-react";
 import { brand } from "@config/brand";
 import { cn } from "@/lib/cn";
 import { formatClock, formatDate, formatDuration, formatTime } from "@/lib/format";
@@ -81,6 +81,38 @@ export function ConversationView({ conversation, clientName, compact = false }: 
             ))}
           </dl>
         </div>
+      </div>
+    );
+  }
+
+  if (conv.channel === "email") {
+    return (
+      <div className="space-y-3">
+        {conv.subject && (
+          <div className="flex items-center gap-2 text-sm text-ink">
+            <Mail className="size-4 text-ink-subtle" />
+            <span className="font-medium">{conv.subject}</span>
+          </div>
+        )}
+        {conv.messages.map((m, i) => {
+          const ours = m.from !== "cliente";
+          return (
+            <article key={i} className={cn("animate-enter rounded-card border bg-surface", ours ? "border-accent-line" : "border-line")}>
+              <header className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-line px-4 py-2.5 text-[13px]">
+                <span className="text-ink">
+                  <span className="font-medium">
+                    {m.from === "agente" ? `${brand.company.name} · Pedidos` : m.from === "equipo" ? brand.user.name : contact}
+                  </span>
+                  <span className="text-ink-subtle"> para {ours ? contact : `${brand.company.name}`}</span>
+                </span>
+                <span className="tabular text-xs text-ink-subtle">
+                  {formatDate(m.time)} · {formatTime(m.time)}
+                </span>
+              </header>
+              <div className="px-4 py-3 text-[14px] leading-relaxed whitespace-pre-line text-ink">{m.text}</div>
+            </article>
+          );
+        })}
       </div>
     );
   }

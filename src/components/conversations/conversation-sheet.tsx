@@ -10,6 +10,7 @@ import { formatDate, formatDuration, formatEuro, formatTime } from "@/lib/format
 import type { Conversation } from "@/types";
 import { ConversationView, useLiveConversation } from "./conversation-view";
 import { OutcomeBadge } from "./outcome-badge";
+import { channelLabel } from "./channel";
 
 /** Busca una conversación entre las de la página, las de los casos y las simuladas. */
 export function useConversationLookup(conversations: Record<string, Conversation>) {
@@ -35,7 +36,7 @@ export function ConversationSheet({ conversations }: { conversations: Record<str
       open={!!conv}
       onOpenChange={(o) => !o && open(null)}
       title={client?.name ?? ""}
-      description={conv ? `${conv.channel === "llamada" ? "Llamada" : "WhatsApp"} · ${formatDate(conv.startedAt)} ${formatTime(conv.startedAt)}` : undefined}
+      description={conv ? `${channelLabel[conv.channel]} · ${formatDate(conv.startedAt)} ${formatTime(conv.startedAt)}` : undefined}
     >
       {conv && client && (
         <div className="space-y-5 p-5 sm:p-6">

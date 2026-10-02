@@ -660,16 +660,17 @@ export function buildStuckCases(input: CaseInput) {
     const conv: Conversation = {
       id: "conv-bahia",
       clientId: c.id,
-      channel: "whatsapp",
+      channel: "email",
+      subject: "Pedido habitual · Miércoles",
       purpose: "recordatorio",
       startedAt: `${today}T10:02:00`,
       outcome: "escalado",
       summary: "Pide pagar a 60 días a final de temporada",
       caseId: "case-bahia",
       messages: msgs(today, [
-        ["agente", "10:02", "Buenos días, Beatriz. ¿Te preparo el pedido de esta semana?"],
-        ["cliente", "10:40", "Hola. Sí, lo de siempre. Una cosa: con el cierre de temporada vamos justos de caja. ¿Este pedido me lo podéis pasar a 60 días en vez de a 30?"],
-        ["agente", "10:41", "Lo consulto y te digo enseguida."],
+        ["agente", "10:02", `Hola, Beatriz:\n\nTe escribo para el pedido de esta semana. ¿Te lo preparo como siempre para el reparto de mañana?\n\nUn saludo,\nEquipo de pedidos de ${company}`],
+        ["cliente", "10:40", "Buenos días:\n\nSí, lo de siempre. Una consulta: con el cierre de temporada vamos justos de caja. ¿Sería posible pasar este pedido a 60 días en lugar de a 30?\n\nGracias,\nBeatriz Abal\nHotel Bahía · Administración"],
+        ["agente", "10:41", `Hola, Beatriz:\n\nLo consulto y te respondo enseguida.\n\nUn saludo,\nEquipo de pedidos de ${company}`],
       ]),
     };
     conversations.push(conv);
@@ -698,8 +699,8 @@ export function buildStuckCases(input: CaseInput) {
           ruleKey: "pago-60-fin-temporada",
           followUp: {
             messages: [
-              { from: "agente", text: "Beatriz, sin problema: este pedido te lo pasamos a 60 días. Te llega mañana por la mañana." },
-              { from: "cliente", text: "Mil gracias!" },
+              { from: "agente", text: `Hola, Beatriz:\n\nSin problema: este pedido te lo pasamos a 60 días. Te llega mañana por la mañana.\n\nUn saludo,\nEquipo de pedidos de ${company}` },
+              { from: "cliente", text: "¡Mil gracias!\n\nBeatriz" },
             ],
             outcome: "pedido_cerrado",
             order: { total: amount, margin: r2(amount * 0.255), lines: [] },
@@ -711,7 +712,7 @@ export function buildStuckCases(input: CaseInput) {
           label: "Proponer 45 días",
           consequence: "Punto intermedio. El agente lo propone y espera respuesta.",
           followUp: {
-            messages: [{ from: "agente", text: "Beatriz, te lo podemos dejar a 45 días. ¿Te sirve así?" }],
+            messages: [{ from: "agente", text: `Hola, Beatriz:\n\nTe lo podemos dejar a 45 días. ¿Te sirve así?\n\nUn saludo,\nEquipo de pedidos de ${company}` }],
             outcome: "en_curso",
             confirmation: "Propuesta de 45 días enviada.",
           },
@@ -722,8 +723,8 @@ export function buildStuckCases(input: CaseInput) {
           consequence: "Puede que reduzca el pedido: el año pasado pidió un 20 % menos en octubre.",
           followUp: {
             messages: [
-              { from: "agente", text: "Beatriz, de momento no podemos cambiar el plazo de este pedido. ¿Te lo preparo igualmente a 30 días?" },
-              { from: "cliente", text: "Vale, pero entonces ponme solo la mitad" },
+              { from: "agente", text: `Hola, Beatriz:\n\nDe momento no podemos cambiar el plazo de este pedido. ¿Te lo preparo igualmente a 30 días?\n\nUn saludo,\nEquipo de pedidos de ${company}` },
+              { from: "cliente", text: "Vale, pero entonces enviadme solo la mitad.\n\nBeatriz" },
             ],
             outcome: "pedido_cerrado",
             order: { total: r2(amount / 2), margin: r2((amount / 2) * 0.255), lines: [] },

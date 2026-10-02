@@ -31,6 +31,7 @@ import {
   routineNoOrder,
   routineNoReply,
   routineWhatsapp,
+  toEmail,
 } from "./seed/conversations";
 import { buildStuckCases } from "./seed/stuck-cases";
 
@@ -171,12 +172,26 @@ function makeClient(spec: Partial<Spec> & { type: BusinessType }, n: number): Cl
 }
 
 for (const s of specials) clients.push(makeClient(s, 0));
+const specialIds0 = new Set(specials.map((s) => s.id));
 let counter = 1;
 for (const [type, profile] of Object.entries(typeProfile) as [BusinessType, (typeof typeProfile)[BusinessType]][]) {
   const already = specials.filter((s) => s.type === type).length;
   for (let i = already; i < profile.count; i++) clients.push(makeClient({ type }, counter++));
 }
 const clientById = new Map(clients.map((c) => [c.id, c]));
+
+// Algunos clientes prefieren el correo (sobre todo tiendas, supermercados y
+// hoteles). Se usa un generador aparte para no alterar el resto de los datos.
+{
+  const rngEmail = createRng(brand.seed + 1);
+  const emailShare: Partial<Record<BusinessType, number>> = { supermercado: 0.5, ferreteria: 0.5, hotel: 0.45, tienda: 0.3, panaderia: 0.1 };
+  for (const c of clients) {
+    if (specialIds0.has(c.id) || c.contactPreference !== "whatsapp") continue;
+    if (rngEmail.chance(emailShare[c.type] ?? 0.04)) c.contactPreference = "email";
+  }
+  clientById.get("c-bahia")!.contactPreference = "email";
+}
+const asChannel = (conv: Conversation, c: Client) => (c.contactPreference === "email" && conv.channel === "whatsapp" ? toEmail(conv, c) : conv);
 
 // ── Episodios de fuga ───────────────────────────────────────────────────────
 type Group = "contacted" | "control" | "none";
@@ -562,7 +577,7 @@ for (const o of orders) {
     continue;
   }
   const convId = `conv-${convCounter++}`;
-  const conv = c.contactPreference === "llamada" ? routineCall(rng, c, o, start, convId) : routineWhatsapp(rng, c, o, start, convId);
+  const conv = asChannel(c.contactPreference === "llamada" ? routineCall(rng, c, o, start, convId) : routineWhatsapp(rng, c, o, start, convId), c);
   finalize(o);
   conv.orderTotal = o.total;
   const closeTime = conv.messages.filter((m) => m.from === "agente").at(-1)!.time;
@@ -578,7 +593,7 @@ for (const o of orders) {
   if (conv.channel === "llamada") {
     pushEvent({ time: start, type: "llamada", clientId: c.id, text: `Llamada para el pedido habitual · ${formatDuration(conv.durationSec!)}`, conversationId: convId });
   } else {
-    pushEvent({ time: start, type: "recordatorio", clientId: c.id, text: "Recordatorio de pedido habitual por WhatsApp", conversationId: convId });
+    pushEvent({ time: start, type: "recordatorio", clientId: c.id, text: `Recordatorio de pedido habitual por ${conv.channel === "email" ? "correo" : "WhatsApp"}`, conversationId: convId });
   }
   pushEvent({ time: closeTime, type: "pedido_cerrado", clientId: c.id, text: `Pedido cerrado y registrado en el ERP · ${o.lines!.length} productos`, amount: o.total, conversationId: convId });
 }
@@ -589,7 +604,7 @@ for (const o of todayPending) {
   const c = clientById.get(o.clientId)!;
   const start = randTime(TODAY_I, 8 * 60, nowMinutes - 10);
   const convId = `conv-${convCounter++}`;
-  conversations.push(routineNoReply(rng, c, start, convId, true));
+  conversations.push(asChannel(routineNoReply(rng, c, start, convId, true), c));
   pushEvent({ time: start, type: "recordatorio", clientId: c.id, text: "Recordatorio enviado · esperando respuesta", conversationId: convId });
   stats.reminders++;
   stats.conversations++;
@@ -606,7 +621,7 @@ for (const s of skips) {
   if (s.day < WINDOW_DETAIL || s.day === TODAY_I) continue;
   const start = randTime(s.day, 8 * 60, 11 * 60);
   const convId = `conv-${convCounter++}`;
-  const conv = noReply ? routineNoReply(rng, c, start, convId, false) : routineNoOrder(rng, c, start, convId);
+  const conv = asChannel(noReply ? routineNoReply(rng, c, start, convId, false) : routineNoOrder(rng, c, start, convId), c);
   conversations.push(conv);
   pushEvent({
     time: noReply ? conv.messages.at(-1)!.time : conv.messages[1].time,
@@ -637,7 +652,7 @@ for (const e of recoveryEpisodes) {
   const outcome = order ? "recuperado" : e.outcome === "lost" ? "perdido" : day >= TODAY_I - 2 ? "en_curso" : rng.chance(0.55) ? "sin_respuesta" : "en_curso";
   const convId = `conv-${convCounter++}`;
   const famName = e.familyId ? familyName(e.familyId) : "";
-  const conv = recoveryConversation(rng, c, e.type, outcome, famName, daysSince, start, convId, order);
+  const conv = asChannel(recoveryConversation(rng, c, e.type, outcome, famName, daysSince, start, convId, order), c);
   if (order) {
     order.time = conv.messages.filter((m) => m.from === "agente").at(-1)!.time;
     if (order.time > NOW) continue;
@@ -771,8 +786,8 @@ const autonomy: AutonomyAction[] = [
   { id: "recordatorio", name: "Enviar recordatorio de pedido habitual", description: "Escribe al cliente el día que le toca pedir con su pedido de siempre.", level: "autonomo", accuracy: 0.993, cases: stats.reminders },
   { id: "erp", name: "Registrar pedido en el ERP", description: "Da de alta el pedido confirmado con sus líneas y fecha de entrega.", level: "autonomo", accuracy: 0.997, cases: stats.orders },
   { id: "cambios", name: "Aceptar cambios en el pedido habitual", description: "Suma, quita o cambia cantidades cuando el cliente lo pide.", level: "autonomo", accuracy: 0.981, cases: Math.round(stats.orders * 0.42) },
-  { id: "riesgo", name: "Contactar a un cliente que se sale de su patrón", description: "Escribe o llama cuando un cliente se retrasa, pide menos o deja una familia.", level: "actua_avisa", accuracy: 0.941, cases: stats.riskContacts + 2 },
-  { id: "llamar", name: "Llamar a un cliente", description: "Llama a quien prefiere el teléfono o no contesta por WhatsApp.", level: "actua_avisa", accuracy: 0.928, cases: stats.calls },
+  { id: "riesgo", name: "Contactar a un cliente que se sale de su patrón", description: "Escribe por WhatsApp o correo, o llama, cuando un cliente se retrasa, pide menos o deja una familia.", level: "actua_avisa", accuracy: 0.941, cases: stats.riskContacts + 2 },
+  { id: "llamar", name: "Llamar a un cliente", description: "Llama a quien prefiere el teléfono o no contesta por WhatsApp ni por correo.", level: "actua_avisa", accuracy: 0.928, cases: stats.calls },
   { id: "descuento", name: "Aplicar descuento dentro de margen", description: "Ofrece hasta un 5 % si el margen del pedido sigue por encima del 18 %.", level: "actua_avisa", accuracy: 0.957, cases: 38 },
   { id: "sustituir", name: "Sustituir producto sin stock", description: "Propone un producto equivalente cuando el habitual no está disponible.", level: "propone", accuracy: 0.884, cases: 46 },
   { id: "incidencias", name: "Gestionar incidencias y abonos pequeños", description: "Abona roturas o faltas de menos de 30 € y avisa a reparto.", level: "propone", accuracy: 0.903, cases: 14 },

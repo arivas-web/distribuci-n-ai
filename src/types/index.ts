@@ -124,7 +124,7 @@ export interface Order {
   lines?: OrderLine[];
 }
 
-export type Channel = "whatsapp" | "llamada";
+export type Channel = "whatsapp" | "llamada" | "email";
 
 export type ConversationOutcome =
   | "pedido_cerrado"
@@ -151,6 +151,8 @@ export interface Conversation {
   id: string;
   clientId: string;
   channel: Channel;
+  /** Asunto (solo correo). */
+  subject?: string;
   purpose: ConversationPurpose;
   startedAt: ISODateTime;
   /** Duración en segundos (llamadas). */

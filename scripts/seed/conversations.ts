@@ -290,3 +290,37 @@ export function recoveryConversation(
     messages: b.msgs,
   };
 }
+
+const capitalize = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
+/**
+ * Pasa una conversación de WhatsApp a correo: asunto, saludo y firma. No usa
+ * el generador aleatorio, así que no altera el resto de los datos.
+ */
+export function toEmail(conv: Conversation, client: Client): Conversation {
+  const name = firstName(client);
+  const day = weekdayName(conv.startedAt.slice(0, 10));
+  const subject = {
+    recordatorio: `Pedido habitual · ${capitalize(day)}`,
+    recuperacion: `${company} · ¿Va todo bien?`,
+    incidencia: "Incidencia con tu pedido",
+    seguimiento: "Tu pedido",
+  }[conv.purpose];
+  const shortReplies = ["Sí, adelante con el pedido.", "Perfecto, así está bien.", "De acuerdo, preparadlo como siempre."];
+  const messages = conv.messages.map((m, i) => {
+    if (m.from === "cliente") {
+      let text = capitalize(m.text.trim());
+      if (text.length < 30) {
+        const prev = conv.messages[i - 1]?.text ?? "";
+        text = /registrado|Total:/.test(prev) ? "Recibido, gracias." : shortReplies[Number(m.time.slice(15, 16)) % 3];
+      }
+      return { from: m.from, time: m.time, text: `${text}\n\n${name}` };
+    }
+    const body = m.text
+      .replace(/^(Buenos días|Hola|Buenas),? ?([\wáéíóúñÁÉÍÓÚÑ]+)?[.,]? */, "")
+      .replace(/^buenos días\. */i, "")
+      .replace('contesta con un "sí"', "responde a este correo");
+    return { from: m.from, time: m.time, text: `Hola, ${name}:\n\n${capitalize(body)}\n\nUn saludo,\nEquipo de pedidos de ${company}` };
+  });
+  return { ...conv, channel: "email", subject, durationSec: undefined, messages };
+}

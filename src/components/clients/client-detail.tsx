@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, Phone, ShoppingBag } from "lucide-react";
+import { ArrowLeft, ShoppingBag } from "lucide-react";
+import { ChannelIcon, channelLabel as contactChannelLabel } from "@/components/conversations/channel";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ export function ClientDetailView(props: {
             {recoveredToday ? <Badge tone="accent">Recuperado hoy</Badge> : <StatusBadge status={client.status} control={client.controlGroup} />}
           </div>
           <p className="mt-1 text-sm text-ink-muted">
-            {businessTypeLabel[client.type]} · {props.zone} · {client.contactName} · {client.phone}
+            {businessTypeLabel[client.type]} · {props.zone} · {client.contactName} · {client.phone} · prefiere {contactChannelLabel[client.contactPreference].toLowerCase()}
           </p>
           <p className="text-sm text-ink-subtle">
             Cliente desde {formatDate(client.since)} · Comercial: {props.rep}
@@ -183,7 +184,7 @@ export function ClientDetailView(props: {
               <li key={c.id}>
                 <button onClick={() => openConversation(c.id)} className="flex w-full items-start gap-3 rounded-lg px-2 py-2 text-left hover:bg-sunken/60">
                   <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-sunken text-ink-muted">
-                    {c.channel === "llamada" ? <Phone className="size-3.5" /> : <MessageCircle className="size-3.5" />}
+                    <ChannelIcon channel={c.channel} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm text-ink">{c.summary}</div>
